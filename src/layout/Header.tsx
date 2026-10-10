@@ -1,0 +1,104 @@
+// src/layouts/Header.tsx
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import type { AuthUser } from '../types';
+import { getAuthRoleLabel } from '../utils/authRole';
+
+interface HeaderProps {
+  user?: AuthUser;
+  onLogout?: () => void;
+}
+
+const navItems = [
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/empleados', label: 'Empleados' },
+];
+
+function Header({ user, onLogout }: HeaderProps) {
+  const { pathname } = useLocation();
+
+
+  const [showWelcome, setShowWelcome] = useState(true);
+
+useEffect(() => {
+  if (!user) return;
+
+  const timer = setTimeout(() => {
+    setShowWelcome(false);
+  }, 5000);
+
+  return () => clearTimeout(timer);
+}, [user]);
+
+  return (
+    <header className="bg-blue-800 text-white shadow-md">
+      <div className="w-full px-4 py-4 flex flex-wrap items-center justify-between gap-3">
+
+        {/* Logo */}
+        <div className="flex items-center gap-3 justify-start">
+          <span className="text-2xl">👥</span>
+          <span className="font-bold text-xl tracking-tight">
+            Mini RRHH
+          </span>
+        </div>
+
+        {/* Navegación */}
+        {user && (
+          <nav className="flex items-center justify-center gap-1 flex-wrap">
+            {navItems.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`
+                  px-3 py-1.5 rounded-md text-sm font-medium transition-colors
+                  ${
+                    pathname.startsWith(item.to)
+                      ? 'bg-white/20 text-white'
+                      : 'text-white/75 hover:text-white hover:bg-white/10'
+                  }
+                `}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        )}
+
+        {/* Usuario */}
+        {user && (
+          <div className="flex items-center justify-end gap-2 flex-wrap">
+           <div className="flex items-center text-sm text-white">
+  {showWelcome && (
+    <span className="mr-2 font-bold animate-pulse">
+      ✨ Bienvenido, {user.firstName} {user.lastName} ✨
+    </span>
+  )}
+
+  {!showWelcome && (
+    <span className="mr-2 font-bold">
+      {user.firstName} {user.lastName}
+    </span>
+  )}
+</div>
+
+            <span className="text-xs bg-blue-500 px-2 py-0.5 rounded-full uppercase font-medium">
+              {getAuthRoleLabel(user.role)}
+            </span>
+
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="text-sm text-white border border-white/30 hover:border-white/60 px-3 py-1.5 rounded-md transition-colors cursor-pointer"
+              >
+                Cerrar sesión
+              </button>
+            )}
+          </div>
+        )}
+
+      </div>
+    </header>
+  );
+}
+
+export default Header;
